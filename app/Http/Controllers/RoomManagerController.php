@@ -1,0 +1,87 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\RoomManager;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+
+class RoomManagerController extends Controller
+{
+    /**
+     * The validation rules for the RoomManager resource.
+     *
+     * @var array
+     */
+   private static function getBaseRules(): array
+    {
+        return [
+            'room_uuid' => ['required', 'exists:salles,uuid'],
+            'user_uuid' => ['required', 'exists:users,uuid'],
+            'date' => ['required', 'date'],
+            'start_time' => ['nullable', 'date_format:H:i'],
+            'end_time' => ['nullable', 'date_format:H:i', 'after:start_time'],
+            'status' => ['required', 'string', Rule::in(['Active', 'Inactive'])],
+        ];
+    }
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        $bookings = RoomManager::all();
+        return response()->json(['data'=>$bookings], 200);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $rules=self::getBaseRules();
+        $validatedData = $request->validate($rules);
+
+        $validatedData['uuid'] = Controller::uuidGenerator('RMGR');
+        
+        $checkDuplicate=RoomManager::where('user_uuid', $request->user_uuid)->where('date', $request->date)->first();
+        if ($checkDuplicate) {
+            return response()->json(['message' => 'Room management with this user, room and date already exists'], 403);
+        }
+        $booking = RoomManager::create($validatedData);
+
+        return response()->json($booking, 201);
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(RoomManager $roomManager)
+    {
+        return response()->json($roomManager, 200);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request,$id)
+    {
+        $rules=self::getBaseRules();
+        $rules['user_uuid'][] = Rule::unique('room_managers')
+                               ->where(fn ($query) => $query->where('user_uuid', $request->user_uuid)->where('date', $request->date));
+        $validatedData = $request->validate($rules);
+        $data=RoomManager::find($id);
+        unset($validatedData['uuid']);
+        $data->update($validatedData);
+
+        return response()->json($data, 200);
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(RoomManager $roomManager)
+    {
+        $roomManager->delete();
+        return response()->json(null, 204);
+    }
+}
