@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\RoomManager;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
@@ -126,5 +129,24 @@ class UserController extends Controller
         $user->delete();
 
         return response()->json(['message' => 'User deleted successfully!']);
+    }
+
+
+    public function login(Request $request){
+        $credentials = request(['email', 'password']);
+        if (!Auth::attempt($credentials)) {
+            return response()->json([
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+        $user = $request->user();
+        $tokenResult = $user->createToken('Personal Access Token');
+        $token = $tokenResult->plainTextToken;
+        $room=RoomManagerController::findDailyUserRoom($user->uuid);
+        return response()->json([
+            'token' => $token,
+            'user'=>$user,
+            'roomAccess'=>$room
+        ]);
     }
 }

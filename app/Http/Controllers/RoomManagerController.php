@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\RoomManager;
+use App\Models\Salles;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -57,7 +58,31 @@ class RoomManagerController extends Controller
      */
     public function show(RoomManager $roomManager)
     {
-        return response()->json($roomManager, 200);
+        $data=$roomManager;
+        $data['room']=Salles::where('uuid', $roomManager->room_uuid)->first();
+        return response()->json($data, 200);
+    }
+
+    public static function findByUserOrRoom($id)
+    {
+        $data=RoomManager::where('room_uuid', $id)->orWhere('user_uuid', $id)->get();
+        if(!isset($data)){
+            return null;
+        }
+        $data['room']=Salles::where('uuid', $data->room_uuid)->first();
+        return $data;
+        // return response()->json($data, 200);
+    }
+
+    public static function findDailyUserRoom($id)
+    {
+        $data=RoomManager::Where('user_uuid', $id)->where('date', date('Y-m-d'))->first();
+        if(!isset($data)){
+            return null;
+        }
+        $data['room']=Salles::where('uuid', $data->room_uuid)->first();
+        return $data;
+        // return response()->json($data, 200);
     }
 
     /**
