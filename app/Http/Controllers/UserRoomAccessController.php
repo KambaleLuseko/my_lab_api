@@ -44,7 +44,6 @@ class UserRoomAccessController extends Controller
     {
         $rules = self::getRules();
 
-        // Add the uniqueness rule for store operation
         $rules['user_uuid'][] = Rule::unique('user_room_accesses')
             ->where(fn ($query) => $query
                 ->where('user_uuid', $request->user_uuid)
@@ -56,6 +55,7 @@ class UserRoomAccessController extends Controller
         $validatedData['uuid'] = Controller::uuidGenerator('URMA');
         $validatedData['status'] = 'Pending';
 
+
         /**
          * Check if the room is available
          */
@@ -63,6 +63,8 @@ class UserRoomAccessController extends Controller
         if(!isset($isRoomAvailable)){
             return response()->json(['message' => 'Room is not available on this date'], 403);
         }
+
+
         /**
          * Check if the user has already submitted an access
          */
@@ -70,6 +72,8 @@ class UserRoomAccessController extends Controller
         if($checkDuplicate){
             return response()->json(['message' => 'This user already submitted an access'], 403);
         }
+
+
         /**
          * Check if the room is open
          */
@@ -96,7 +100,10 @@ class UserRoomAccessController extends Controller
         /**
          * Check if the room is full
          */
-        $validatedAccesses=UserRoomAccess::where('room_uuid', $request->room_uuid)->where('date', $request->date)->where('status', 'Approved')->get();
+        $validatedAccesses=UserRoomAccess::where('room_uuid', $request->room_uuid)
+        ->where('date', $request->date)
+        // ->where('status', 'Approved')
+        ->get();
         if(count($validatedAccesses)>=$room->capacity){
             return response()->json(['message' => 'Room is full'], 403);
         }
