@@ -56,7 +56,7 @@ class UserController extends Controller
         $user->status = 'Active';
         $user->save();
 
-        return response()->json(['message' => 'User created successfully!', 'data'=>$user], 200);
+        return response()->json($user, 200);
     }
 
     /**

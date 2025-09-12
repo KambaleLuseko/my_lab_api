@@ -5,6 +5,7 @@ use App\Http\Controllers\SallesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserRoomAccessController;
 use App\Http\Controllers\ServicesController;
 
 /*
@@ -30,6 +31,7 @@ Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
 Route::resource('salles', SallesController::class);
 Route::apiResource('room-manager', RoomManagerController::class);
+Route::apiResource('user-room-access', UserRoomAccessController::class);
 
 Route::resource('services', ServicesController::class);
 
