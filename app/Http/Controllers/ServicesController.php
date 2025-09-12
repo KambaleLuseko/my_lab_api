@@ -29,15 +29,15 @@ class ServicesController extends Controller
     public function store(Request $request)
     {
     
-        $request->validate([
+       $validated= $request->validate([
             'name'  => 'required|string|max:255',
             'description' => 'nullable|string',
-            'salle_id' => 'required|exists:salle,id',
+            'salles_id' => 'required|exists:salles,id',
 
 
         ]);
-
-        $services = Services::create($request->all());
+        $validated  ['uuid']=Controller::uuidGenerator('SRV');
+        $services = Services::create($validated);
 
         return response()->json([
             'message' => 'Service crée avec succès',
@@ -50,7 +50,7 @@ class ServicesController extends Controller
      //Afficher un message spécifique
     public function show(Services $services)
     {
-        return response()->json($services->load('salle'));
+        return response()->json($services->load('salles'));
     }
 
    //Formulaire d'edition
@@ -66,7 +66,7 @@ class ServicesController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'salle_id' => 'required|exists:salles,id',
+            'salles_id' => 'required|exists:salles,id',
         ]);
 
 

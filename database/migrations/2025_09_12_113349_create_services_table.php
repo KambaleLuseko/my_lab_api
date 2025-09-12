@@ -16,8 +16,7 @@ return new class extends Migration
             $table->string('uuid')->unique();
             $table->string('name');
             $table->string('description');
-            $table->string('room_uuid');
-            $table->foreignId('salle_id')->constrained('salles')->onDelete('cascade'); 
+            $table->foreignId('salles_id')->constrained('salles')->onDelete('cascade'); 
             $table->timestamps();
         });
     }
@@ -30,3 +29,5 @@ return new class extends Migration
         Schema::dropIfExists('services');
     }
 };
+
+

@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ServicesController;
-
+use App\Http\Controllers\DashboardController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -32,4 +32,18 @@ Route::resource('salles', SallesController::class);
 Route::apiResource('room-manager', RoomManagerController::class);
 
 Route::resource('services', ServicesController::class);
+
+// Routes de gestion de permission selon le rôle des utilisateurs
+Route::middleware(['role:admin'])->group(function () {
+    Route::get('/admin', [DashboardController::class, 'index'])->name('admin.dashboard');
+});
+
+Route::middleware(['role:etudiant'])->group(function () {
+    Route::get('/etudiant', [DashboardController::class, 'index'])->name('etudiant.dashboard');
+});
+
+Route::middleware(['role:enseignant'])->group(function () {
+    Route::get('/enseignant', [DashboardController::class, 'index'])->name('enseignant.dashboard');
+});
+
 
