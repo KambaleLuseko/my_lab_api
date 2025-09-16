@@ -10,6 +10,8 @@ use App\Http\Controllers\UserRoomAccessController;
 use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\DashboardController;
 use App\Models\User;
+use App\Models\Role;
+use App\Models\Permission;
 
 
 
@@ -48,34 +50,64 @@ use App\Models\User;
         Route::apiResource('room-manager', RoomManagerController::class);
     });
 
-     // Tester la permission ou assigner un rôle (admin seulement)
+
+
     Route::middleware(['auth:sanctum', 'permission:manage_users'])->group(function () {
-        Route::post('/assign-role', function (Request $request) {
-            $user = User::findOrFail($request->user_id);
-            $user->roles()->syncWithoutDetaching([$request->role_id]);
-            return response()->json(['message' => 'Rôle attribué avec succès', 'user' => $user->load('roles')]);
-        });
+                // 1. Voir tous les rôles
+                Route::get('/roles', function () {
+                    return Role::with('permissions')->get();
+                });
 
-        Route::post('/check-permission', function (Request $request) {
-            $user = User::findOrFail($request->user_id);
-            $hasPermission = $user->roles()
-                ->whereHas('permissions', function ($q) use ($request) {
-                    $q->where('name', $request->permission);
-                })->exists();
+                // 2. Voir toutes les permissions
+                Route::get('/permissions', function () {
+                    return Permission::all();
+                });
 
-            return response()->json([
-                'user' => $user->name,
-                'permission' => $request->permission,
-                'granted' => $hasPermission
-            ]);
-        });
-    });
+                // 3. Assigner un rôle à un utilisateur
+                Route::post('/users/{user}/assign-role', function (Request $request, User $user) {
+                    $role = Role::findOrFail($request->role_id);
+                    $user->roles()->syncWithoutDetaching([$role->id]);
 
+                    return response()->json([
+                        'message' => 'Rôle attribué avec succès',
+                        'user' => $user->load('roles')
+                    ]);
+                });
+
+                // 4. Retirer un rôle d’un utilisateur
+                Route::post('/users/{user}/remove-role', function (Request $request, User $user) {
+                    $role = Role::findOrFail($request->role_id);
+                    $user->roles()->detach($role->id);
+
+                    return response()->json([
+                        'message' => 'Rôle retiré avec succès',
+                        'user' => $user->load('roles')
+                    ]);
+                });
+
+                // 5. Voir les permissions d’un utilisateur
+                Route::get('/users/{user}/permissions', function (User $user) {
+                    $permissions = $user->roles()->with('permissions')->get()
+                        ->pluck('permissions')
+                        ->flatten()
+                        ->unique('id');
+
+                        return response()->json([
+                            'user' => $user->only('id','name','email'),
+                            'permissions' => $permissions->values()
+                        ]);
+                    });
+                });
+
+                
+
+
+                
   
 
-    // Routes pour les services
-    Route::middleware(['auth:sanctum', 'permission:manage_services'])->group(function () {
-        Route::resource('services', ServicesController::class);
-    });
+    // // Routes pour les services
+    // Route::middleware(['auth:sanctum', 'permission:manage_services'])->group(function () {
+    //     Route::resource('services', ServicesController::class);
+    // });
 
    
