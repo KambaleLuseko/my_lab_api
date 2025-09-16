@@ -36,20 +36,20 @@ use App\Models\Permission;
     });
 
 
-    // Routes accessibles uniquement aux admins
-    Route::middleware(['auth:sanctum', 'permission:manage_users'])->group(function () {
-        Route::get('/users', [UserController::class, 'index']);
-        Route::post('/users', [UserController::class, 'store']);
-        Route::get('/users/{id}', [UserController::class, 'show']);
-        Route::patch('/users/{id}', [UserController::class, 'update']);
-        Route::delete('/users/{id}', [UserController::class, 'destroy']);
-    });
+    // // Routes accessibles uniquement aux admins
+    // Route::middleware(['auth:sanctum', 'permission:manage_users'])->group(function () {
+    //     Route::get('/users', [UserController::class, 'index']);
+    //     Route::post('/users', [UserController::class, 'store']);
+    //     Route::get('/users/{id}', [UserController::class, 'show']);
+    //     Route::patch('/users/{id}', [UserController::class, 'update']);
+    //     Route::delete('/users/{id}', [UserController::class, 'destroy']);
+    // });
 
-      // Routes pour gérer les salles (admin seulement)
-    Route::middleware(['auth:sanctum', 'permission:manage_rooms'])->group(function () {
-        Route::resource('salles', SallesController::class);
-        Route::apiResource('room-manager', RoomManagerController::class);
-    });
+    //   // Routes pour gérer les salles (admin seulement)
+    // Route::middleware(['auth:sanctum', 'permission:manage_rooms'])->group(function () {
+    //     Route::resource('salles', SallesController::class);
+    //     Route::apiResource('room-manager', RoomManagerController::class);
+    // });
 
 
 /*

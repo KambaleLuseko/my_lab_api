@@ -198,6 +198,9 @@ class UserRoomAccessController extends Controller
     public function updateStatus(Request $request){
         $data=$request->data;
         if(is_array($data)==false){
+            $data=json_decode($data, true);
+        }
+        if(is_array($data)==false){
             return response()->json(['message' => 'Data must be an array'], 403);
         }
         $roomsUuid=array_map(fn($item) => $item['room_uuid'], $data);
