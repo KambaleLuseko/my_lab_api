@@ -62,7 +62,17 @@ class RoomManagerController extends Controller
     public function store(Request $request)
     {
         $rules=self::getBaseRules();
+        $validatedData = $request->validate([
+            'user_uuid' => [
+                'required',
+                // Checks that the uuid exists AND that the user has a specific role
+                Rule::exists('users', 'uuid')->where(function ($query) {
+                    $query->where('role', 'agent');
+                }),
+            ],
+        ], ['user_uuid.exists' =>'The user selected is not an agent, only agents can be room managers']);
         $validatedData = $request->validate($rules);
+       
 
         $validatedData['uuid'] = Controller::uuidGenerator('RMGR');
         
@@ -115,7 +125,16 @@ class RoomManagerController extends Controller
     {
         $rules=self::getBaseRules();
         $rules['user_uuid'][] = Rule::unique('room_managers')
-                               ->where(fn ($query) => $query->where('user_uuid', $request->user_uuid)->where('date', $request->date));
+                ->where(fn ($query) => $query->where('user_uuid', $request->user_uuid)->where('date', $request->date));
+         $validatedData = $request->validate([
+            'user_uuid' => [
+                'required',
+                // Checks that the uuid exists AND that the user has a specific role
+                Rule::exists('users', 'uuid')->where(function ($query) {
+                    $query->where('role', 'agent');
+                }),
+            ],
+        ], ['user_uuid.exists' =>'The user selected is not an agent, only agents can be room managers']);
         $validatedData = $request->validate($rules);
         $data=RoomManager::find($id);
         unset($validatedData['uuid']);

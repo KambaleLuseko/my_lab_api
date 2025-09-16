@@ -68,6 +68,17 @@ class UserRoomAccessController extends Controller
                 ->where('user_uuid', $request->user_uuid)
                 // ->where('room_uuid', $request->room_uuid)
                 ->where('date', $request->date));
+        
+         $validatedData = $request->validate([
+            'user_uuid' => [
+                'required',
+                // Checks that the uuid exists AND that the user has a specific role
+                Rule::exists('users', 'uuid')->where(function ($query) {
+                    $query->where('role', 'etudiant');
+                    $query->orWhere('role', 'visiteur');
+                }),
+            ],
+        ], ['user_uuid.exists' =>'The user selected is not a student, only students can get access to rooms']);
 
         $validatedData = $request->validate($rules);
 
@@ -157,6 +168,17 @@ class UserRoomAccessController extends Controller
                 ->where('user_uuid', $request->user_uuid)
                 ->where('room_uuid', $request->room_uuid)
                 ->where('date', $request->date));
+        
+         $validatedData = $request->validate([
+            'user_uuid' => [
+                'required',
+                // Checks that the uuid exists AND that the user has a specific role
+                Rule::exists('users', 'uuid')->where(function ($query) {
+                    $query->where('role', 'etudiant');
+                    $query->orWhere('role', 'visiteur');
+                }),
+            ],
+        ], ['user_uuid.exists' =>'The user selected is not a student, only students can get access to rooms']);
 
         $validatedData = $request->validate($rules);
         unset($validatedData['uuid']);
@@ -164,6 +186,14 @@ class UserRoomAccessController extends Controller
         $userRoomAccess->update($validatedData);
         return response()->json($userRoomAccess, 200);
     }
+
+    /**
+     * 
+     * Aprove or reject multiple demands
+     * 
+     * $request Map{data:UserAccessModel[]}
+     * 
+     */
 
     public function updateStatus(Request $request){
         $data=$request->data;
@@ -265,15 +295,25 @@ class UserRoomAccessController extends Controller
         return response()->json([ 'rejectedDemands'=>$rejectedDemands, 'approvedDemands'=>$approvedDemands], 200);
     }
 
+    /**
+     * 
+     * Reject a demand
+     */
+
     public function rejectDemands(Request $request){
+        if(!isset($request->uuid)){
+            return response()->json(['message' => "Demand identifier not found"], 403);
+        }
         $demand=UserRoomAccess::where('uuid', $request->uuid)->first();
         if(!isset($demand)){
             return response()->json(['message' => "Demand not found"], 403);
         }
-        if(Auth::check()==false){
-            return response()->json(['message' => "We are unable to authenticate your request"], 401);
-        }
-        $manager=RoomManager::where('room_uuid', $demand->room_uuid)->where('date', $demand->date)->where('user_uuid', Auth::user()->uuid)->first();
+        // if(Auth::check()==false){
+        //     return response()->json(['message' => "We are unable to authenticate your request"], 401);
+        // }
+        $manager=RoomManager::where('room_uuid', $demand->room_uuid)->where('date', $demand->date)
+        // ->where('user_uuid', Auth::user()->uuid)
+        ->first();
         if(!isset($manager)){
             return response()->json(['message' => "Room manager not found on this demand"], 403);
         }
@@ -288,22 +328,29 @@ class UserRoomAccessController extends Controller
         return response()->json($demand, 200);
     }
 
+    /**
+     * 
+     */
+
     public function cancelDemands(Request $request){
+        if(!isset($request->uuid)){
+            return response()->json(['message' => "Demand identifier not found"], 403);
+        }
          $demand=UserRoomAccess::where('uuid', $request->uuid)->first();
         if(!isset($demand)){
             return response()->json(['message' => "Demand not found"], 403);
         }
-        if(Auth::check()){
-            if(Auth::user()->uuid==$demand->user_uuid){
+        // if(Auth::check()){
+        //     if(Auth::user()->uuid==$demand->user_uuid){
                 $demand->status='Canceled';
                 $demand->save();
                 return response()->json($demand, 200);
-            }else{
-                return response()->json(['message' => "Demand cannot be canceled because it's not yours"], 403);
-            }
-        }else{
-            return response()->json(['message' => "We are unable to authenticate your request"], 403);
-        }
+        //     }else{
+        //         return response()->json(['message' => "Demand cannot be canceled because it's not yours"], 403);
+        //     }
+        // }else{
+        //     return response()->json(['message' => "We are unable to authenticate your request"], 403);
+        // }
     }
 
     /**

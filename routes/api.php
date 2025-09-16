@@ -34,7 +34,7 @@ Route::apiResource('room-manager', RoomManagerController::class);
 Route::apiResource('user-room-access', UserRoomAccessController::class);
 Route::post('user-room-access/approve', [UserRoomAccessController::class, 'updateStatus']);
 Route::post('user-room-access/reject', [UserRoomAccessController::class, 'rejectDemands']);
-Route::post('user-room-access/cancel', [UserRoomAccessController::class, 'rejectDemands']);
+Route::post('user-room-access/cancel', [UserRoomAccessController::class, 'cancelDemands']);
 
 Route::resource('services', ServicesController::class);
 
