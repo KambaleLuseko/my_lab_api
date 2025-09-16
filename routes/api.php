@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserRoomAccessController;
 use App\Http\Controllers\ServicesController;
-
+use App\Http\Controllers\DashboardController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -32,6 +32,23 @@ Route::delete('/users/{id}', [UserController::class, 'destroy']);
 Route::resource('salles', SallesController::class);
 Route::apiResource('room-manager', RoomManagerController::class);
 Route::apiResource('user-room-access', UserRoomAccessController::class);
+Route::post('user-room-access/approve', [UserRoomAccessController::class, 'updateStatus']);
+Route::post('user-room-access/reject', [UserRoomAccessController::class, 'rejectDemands']);
+Route::post('user-room-access/cancel', [UserRoomAccessController::class, 'rejectDemands']);
 
 Route::resource('services', ServicesController::class);
+
+// Routes de gestion de permission selon le rôle des utilisateurs
+Route::middleware(['role:admin'])->group(function () {
+    Route::get('/admin', [DashboardController::class, 'index'])->name('admin.dashboard');
+});
+
+Route::middleware(['role:etudiant'])->group(function () {
+    Route::get('/etudiant', [DashboardController::class, 'index'])->name('etudiant.dashboard');
+});
+
+Route::middleware(['role:enseignant'])->group(function () {
+    Route::get('/enseignant', [DashboardController::class, 'index'])->name('enseignant.dashboard');
+});
+
 

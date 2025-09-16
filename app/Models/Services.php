@@ -12,7 +12,8 @@ class Services extends Model
     protected $fillable = [
         'name',
         'description',
-        'salle_id'
+        'uuid',
+        'salles_id'
     ];
 
     public function  salles ()
