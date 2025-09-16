@@ -65,6 +65,43 @@ class UserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
+
+
+    public function login(Request $request)
+    {
+        // Valider les données
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string'
+        ]);
+
+        // Chercher l'utilisateur par email
+        $user = User::where('email', $request->email)->first();
+
+        // Vérifier si utilisateur existe et mot de passe correct
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        // Générer un token Sanctum
+        $token = $user->createToken('Personal Access Token')->plainTextToken;
+
+        // Récupérer accès à la salle (optionnel)
+        $room = null;
+        if (class_exists('App\Http\Controllers\RoomManagerController')) {
+            $room = \App\Http\Controllers\RoomManagerController::findDailyUserRoom($user->uuid);
+        }
+
+        // Retourner la réponse
+        return response()->json([
+            'token' => $token,
+            'user' => $user,
+            'roomAccess' => $room
+        ], 200);
+    }
+
     public function show($id)
     {
         $user = User::find($id);
@@ -132,21 +169,21 @@ class UserController extends Controller
     }
 
 
-    public function login(Request $request){
-        $credentials = request(['email', 'password']);
-        if (!Auth::attempt($credentials)) {
-            return response()->json([
-                'message' => 'Unauthorized'
-            ], 401);
-        }
-        $user = $request->user();
-        $tokenResult = $user->createToken('Personal Access Token');
-        $token = $tokenResult->plainTextToken;
-        $room=RoomManagerController::findDailyUserRoom($user->uuid);
-        return response()->json([
-            'token' => $token,
-            'user'=>$user,
-            'roomAccess'=>$room
-        ]);
-    }
+    // public function login(Request $request){
+    //     $credentials = request(['email', 'password']);
+    //     if (!Auth::attempt($credentials)) {
+    //         return response()->json([
+    //             'message' => 'Unauthorized'
+    //         ], 401);
+    //     }
+    //     $user = $request->user();
+    //     $tokenResult = $user->createToken('Personal Access Token');
+    //     $token = $tokenResult->plainTextToken;
+    //     $room=RoomManagerController::findDailyUserRoom($user->uuid);
+    //     return response()->json([
+    //         'token' => $token,
+    //         'user'=>$user,
+    //         'roomAccess'=>$room
+    //     ]);
+    // }
 }

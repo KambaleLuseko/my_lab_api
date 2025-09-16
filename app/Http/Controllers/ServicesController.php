@@ -11,7 +11,6 @@ class ServicesController extends Controller
     //Afficher tous les services disponibles 
     public function index()
     {
-       
         $services = Services::with('salle')->get();
         return response()->json($services);
     }
@@ -19,22 +18,18 @@ class ServicesController extends Controller
      //Formulaire de creation     
     public function create()
     {
-    
         $salles = Salles::all();
         return view('services.create', compact('salles'));
     }
 
 
-     //Enregistremnt d'un nouveau service
+     //Enregistrement d'un nouveau service
     public function store(Request $request)
     {
-    
        $validated= $request->validate([
             'name'  => 'required|string|max:255',
             'description' => 'nullable|string',
             'salles_id' => 'required|exists:salles,id',
-
-
         ]);
         $validated  ['uuid']=Controller::uuidGenerator('SRV');
         $services = Services::create($validated);
@@ -54,7 +49,7 @@ class ServicesController extends Controller
     }
 
    //Formulaire d'edition
-   function edit(string $id)
+    public function edit(string $id)
     {
          $salles = Salles::all();
         return view('services.edit', compact('services', 'salles'));
@@ -71,10 +66,8 @@ class ServicesController extends Controller
 
 
         $service = Services::findOrFail($id);
-
-
         $service->update($request->all());
-
+        
         return response()->json([
             'message' => 'Service mis à jour avec succès',
             'service' => $service
