@@ -32,6 +32,9 @@ Route::delete('/users/{id}', [UserController::class, 'destroy']);
 Route::resource('salles', SallesController::class);
 Route::apiResource('room-manager', RoomManagerController::class);
 Route::apiResource('user-room-access', UserRoomAccessController::class);
+Route::post('user-room-access/approve', [UserRoomAccessController::class, 'updateStatus']);
+Route::post('user-room-access/reject', [UserRoomAccessController::class, 'rejectDemands']);
+Route::post('user-room-access/cancel', [UserRoomAccessController::class, 'rejectDemands']);
 
 Route::resource('services', ServicesController::class);
 
