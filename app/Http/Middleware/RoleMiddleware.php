@@ -3,18 +3,18 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 class RoleMiddleware
 {
-    public function handle($request, Closure $next, ...$roles)
+    /**
+     * Handle an incoming request.
+     */
+    public function handle(Request $request, Closure $next, $permission)
     {
-        if (!Auth::check()) {
-            return redirect()->route('login');
-        }
-
-        if (!in_array(Auth::user()->role, $roles)) {
-            abort(403, 'Accès interdit.');
+        $user = $request->user();
+        if (!$user || !$user->hasPermission($permission)) {
+            return response()->json(['error' => 'Unauthorized'], 403);
         }
 
         return $next($request);

@@ -1,0 +1,8 @@
+POST http://127.0.0.1:8000/api/login
+Authorization: Bearer 1|FC3cNBokbzQY4CvwNEreoTz0FaZzkNmdqlaVN1IA099f51c0
+Content-Type: application/json
+
+{
+  "email": "visiteur@example.com",
+  "password": "visiteur123"
+}
