@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\RoomManager;
 use App\Models\Salles;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -28,9 +29,30 @@ class RoomManagerController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $bookings = RoomManager::all();
+        $getUser=$request->query('getUser');
+        $getRoom=$request->query('getRoom');
+        // Step 1: Get all bookings
+        $bookings = RoomManager::get();
+        // Step 2: Get all unique user and room UUIDs from the bookings
+        if($getUser === 'true'){
+            $usersUuid = $bookings->pluck('user_uuid')->unique()->toArray();
+            $users = User::whereIn('uuid', $usersUuid)->get();
+            $usersMap = $users->keyBy('uuid');
+        }
+        if($getRoom === 'true'){
+            $roomsUuid = $bookings->pluck('room_uuid')->unique()->toArray();
+            $rooms = Salles::whereIn('uuid', $roomsUuid)->get();
+            $roomsMap = $rooms->keyBy('uuid');
+        }
+      
+       
+        // Step 5: Loop through bookings and manually attach the associated data
+        foreach ($bookings as $booking) {
+            $booking->user =$getUser === 'true' ? $usersMap[$booking->user_uuid] ?? null:null;
+            $booking->room =$getRoom === 'true' ? $roomsMap[$booking->room_uuid] ?? null:null;
+        }
         return response()->json(['data'=>$bookings], 200);
     }
 
@@ -40,7 +62,17 @@ class RoomManagerController extends Controller
     public function store(Request $request)
     {
         $rules=self::getBaseRules();
+        $validatedData = $request->validate([
+            'user_uuid' => [
+                'required',
+                // Checks that the uuid exists AND that the user has a specific role
+                Rule::exists('users', 'uuid')->where(function ($query) {
+                    $query->where('role', 'agent');
+                }),
+            ],
+        ], ['user_uuid.exists' =>'The user selected is not an agent, only agents can be room managers']);
         $validatedData = $request->validate($rules);
+       
 
         $validatedData['uuid'] = Controller::uuidGenerator('RMGR');
         
@@ -60,6 +92,7 @@ class RoomManagerController extends Controller
     {
         $data=$roomManager;
         $data['room']=Salles::where('uuid', $roomManager->room_uuid)->first();
+        $data['user']=User::where('uuid', $roomManager->user_uuid)->first();
         return response()->json($data, 200);
     }
 
@@ -92,7 +125,16 @@ class RoomManagerController extends Controller
     {
         $rules=self::getBaseRules();
         $rules['user_uuid'][] = Rule::unique('room_managers')
-                               ->where(fn ($query) => $query->where('user_uuid', $request->user_uuid)->where('date', $request->date));
+                ->where(fn ($query) => $query->where('user_uuid', $request->user_uuid)->where('date', $request->date));
+         $validatedData = $request->validate([
+            'user_uuid' => [
+                'required',
+                // Checks that the uuid exists AND that the user has a specific role
+                Rule::exists('users', 'uuid')->where(function ($query) {
+                    $query->where('role', 'agent');
+                }),
+            ],
+        ], ['user_uuid.exists' =>'The user selected is not an agent, only agents can be room managers']);
         $validatedData = $request->validate($rules);
         $data=RoomManager::find($id);
         unset($validatedData['uuid']);
