@@ -36,7 +36,11 @@ class UserRoomAccessController extends Controller
      */
     public function index(Request $request)
     {
-        $accesses = UserRoomAccess::all();
+        $manager=RoomManager::where('user_uuid', Auth::user()->uuid)->first();
+        $accesses = UserRoomAccess::where(function ($query) use ($manager) {
+           if(isset($manager)) $query->where('room_uuid', $manager->room_uuid);
+            $query->where('user_uuid',Auth::user()->uuid);
+        })->get();
         $getUser=$request->query('getUser');
         $getRoom=$request->query('getRoom');
         if($getUser === 'true'){

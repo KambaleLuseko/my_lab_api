@@ -19,21 +19,21 @@ use App\Models\Permission;
     // Routes publiques (login, etc.)
     // Route::post('/users/login', [UserController::class, 'login']);
 
-    Route::post('/login', function(Request $request) {
-    $user = User::where('email', $request->email)->first();
+    // Route::post('/login', function(Request $request) {
+    // $user = User::where('email', $request->email)->first();
 
-    if (!$user || !Hash::check($request->password, $user->password)) {
-        return response()->json(['message' => 'Invalid credentials'], 401);
-    }
+    // if (!$user || !Hash::check($request->password, $user->password)) {
+    //     return response()->json(['message' => 'Invalid credentials'], 401);
+    // }
 
-    // Générer un token sanctum
-    $token = $user->createToken('api-token')->plainTextToken;
+    // // Générer un token sanctum
+    // $token = $user->createToken('api-token')->plainTextToken;
 
-        return response()->json([
-            'user' => $user->only('id','name','email'),
-            'token' => $token
-        ]);
-    });
+    //     return response()->json([
+    //         'user' => $user->only('id','name','email'),
+    //         'token' => $token
+    //     ]);
+    // });
 
 
     // // Routes accessibles uniquement aux admins
@@ -66,21 +66,24 @@ use App\Models\Permission;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-Route::get('/users', [UserController::class, 'index']);
-Route::post('/users', [UserController::class, 'store']);
-Route::post('/users/login', [UserController::class, 'login']);
-Route::get('/users/{id}', [UserController::class, 'show']);
-Route::patch('/users/{id}', [UserController::class, 'update']);
-Route::delete('/users/{id}', [UserController::class, 'destroy']);
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/users', [UserController::class, 'index']);
+    Route::post('/users', [UserController::class, 'store']);
+    Route::post('/users/login', [UserController::class, 'login']);
+    Route::get('/users/{id}', [UserController::class, 'show']);
+    Route::patch('/users/{id}', [UserController::class, 'update']);
+    Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
-Route::resource('salles', SallesController::class);
-Route::apiResource('room-manager', RoomManagerController::class);
-Route::apiResource('user-room-access', UserRoomAccessController::class);
-Route::post('user-room-access/approve', [UserRoomAccessController::class, 'updateStatus']);
-Route::post('user-room-access/reject', [UserRoomAccessController::class, 'rejectDemands']);
-Route::post('user-room-access/cancel', [UserRoomAccessController::class, 'cancelDemands']);
+    Route::resource('salles', SallesController::class);
+    Route::apiResource('room-manager', RoomManagerController::class);
+    Route::apiResource('user-room-access', UserRoomAccessController::class);
+    Route::post('user-room-access/approve', [UserRoomAccessController::class, 'updateStatus']);
+    Route::post('user-room-access/reject', [UserRoomAccessController::class, 'rejectDemands']);
+    Route::post('user-room-access/cancel', [UserRoomAccessController::class, 'cancelDemands']);
 
-Route::resource('services', ServicesController::class);
+    Route::resource('services', ServicesController::class);
+});
+
 
 // // Routes de gestion de permission selon le rôle des utilisateurs
 // Route::middleware(['role:admin'])->group(function () {

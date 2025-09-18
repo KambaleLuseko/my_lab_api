@@ -11,8 +11,11 @@ class ServicesController extends Controller
     //Afficher tous les services disponibles 
     public function index()
     {
-        $services = Services::with('salle')->get();
-        return response()->json($services);
+        $services = Services::all();
+        foreach ($services as $service) {
+            $service->room=Salles::find($service->salles_id);
+        }
+        return response()->json(['data'=>$services], 200);
     }
 
      //Formulaire de creation     
@@ -34,10 +37,7 @@ class ServicesController extends Controller
         $validated  ['uuid']=Controller::uuidGenerator('SRV');
         $services = Services::create($validated);
 
-        return response()->json([
-            'message' => 'Service crée avec succès',
-            'service' => $services
-        ]);
+        return response()->json($services);
     }
 
   

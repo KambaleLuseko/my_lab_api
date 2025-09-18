@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\RoomManager;
 use App\Models\Salles;
+use App\Models\Services;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -44,14 +45,23 @@ class RoomManagerController extends Controller
         if($getRoom === 'true'){
             $roomsUuid = $bookings->pluck('room_uuid')->unique()->toArray();
             $rooms = Salles::whereIn('uuid', $roomsUuid)->get();
+            $roomsId=$rooms->pluck('id')->unique()->toArray();
+            // print(is_array($roomsId));
+            $roomService=Services::whereIn('salles_id',$roomsId)->get();
+            // $rooms=$rooms->merge($roomService);
+            // print($roomService);
             $roomsMap = $rooms->keyBy('uuid');
+            // $servicesMap = $roomService->keyBy('id');
+
         }
       
        
         // Step 5: Loop through bookings and manually attach the associated data
         foreach ($bookings as $booking) {
+            $managerRoom=$getRoom === 'true' ? $roomsMap[$booking->room_uuid] ?? null:null;
             $booking->user =$getUser === 'true' ? $usersMap[$booking->user_uuid] ?? null:null;
-            $booking->room =$getRoom === 'true' ? $roomsMap[$booking->room_uuid] ?? null:null;
+            $booking->room =$managerRoom;
+            $booking->services =$getRoom === 'true' ? array_filter($roomService->toArray(), fn($item) => $item['salles_id'] == $managerRoom->id):null;
         }
         return response()->json(['data'=>$bookings], 200);
     }
