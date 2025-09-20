@@ -36,7 +36,11 @@ class UserRoomAccessController extends Controller
      */
     public function index(Request $request)
     {
-        $accesses = UserRoomAccess::all();
+        $manager=RoomManager::where('user_uuid', Auth::user()->uuid)->first();
+        $accesses = UserRoomAccess::where(function ($query) use ($manager) {
+           if(isset($manager)) $query->where('room_uuid', $manager->room_uuid);
+            $query->where('user_uuid',Auth::user()->uuid);
+        })->get();
         $getUser=$request->query('getUser');
         $getRoom=$request->query('getRoom');
         if($getUser === 'true'){
@@ -67,6 +71,7 @@ class UserRoomAccessController extends Controller
             ->where(fn ($query) => $query
                 ->where('user_uuid', $request->user_uuid)
                 // ->where('room_uuid', $request->room_uuid)
+                ->where('service_uuid', $request->service_uuid)
                 ->where('date', $request->date));
         
          $validatedData = $request->validate([
@@ -98,7 +103,7 @@ class UserRoomAccessController extends Controller
         /**
          * Check if the user has already submitted an access
          */
-        $checkDuplicate=UserRoomAccess::where('user_uuid', $request->user_uuid)->where('date', $request->date)->first();
+        $checkDuplicate=UserRoomAccess::where('user_uuid', $request->user_uuid)->where('date', $request->date)->where('service_uuid', $request->service_uuid)->first();
         if($checkDuplicate){
             return response()->json(['message' => 'This user already submitted an access'], 403);
         }
@@ -197,6 +202,9 @@ class UserRoomAccessController extends Controller
 
     public function updateStatus(Request $request){
         $data=$request->data;
+        if(is_array($data)==false){
+            $data=json_decode($data, true);
+        }
         if(is_array($data)==false){
             return response()->json(['message' => 'Data must be an array'], 403);
         }

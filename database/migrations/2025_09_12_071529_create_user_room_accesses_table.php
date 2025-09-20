@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('start_time');
             $table->string('end_time');
             $table->string('status');
+            $table->string('service_uuid')->nullable();
             $table->timestamps();
         });
     }

@@ -1,8 +1,9 @@
-POST http://127.0.0.1:8000/api/login
-Authorization: Bearer 1|FC3cNBokbzQY4CvwNEreoTz0FaZzkNmdqlaVN1IA099f51c0
+POST http://127.0.0.1:8000/api/users/3/remove-role
+Authorization: Bearer 9|Sf0aIIzA0eqXZ16deGakDpJD9My893vlgtnLRb0N3938dc77
 Content-Type: application/json
+Accept: application/json
+
 
 {
-  "email": "visiteur@example.com",
-  "password": "visiteur123"
+  "role_id": 3
 }

@@ -28,7 +28,7 @@ class RolePermissionSeeder extends Seeder
             ['description' => 'Visiteur']
         );
 
-        // Création des permissions (si pas déjà existantes)
+        // Création des permissions 
         $manageUsers = Permission::firstOrCreate(
             ['name' => 'manage_users'],
             ['description' => 'Gérer les utilisateurs']
