@@ -16,5 +16,6 @@ class UserRoomAccess extends Model
         'start_time',
         'end_time',
         'status',
+        'service_uuid',
     ];
 }

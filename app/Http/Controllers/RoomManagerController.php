@@ -35,7 +35,7 @@ class RoomManagerController extends Controller
         $getUser=$request->query('getUser');
         $getRoom=$request->query('getRoom');
         // Step 1: Get all bookings
-        $bookings = RoomManager::get();
+        $bookings = RoomManager::where('date', '>=', date('Y-m-d'))->where('status', 'Active')-> get();
         // Step 2: Get all unique user and room UUIDs from the bookings
         if($getUser === 'true'){
             $usersUuid = $bookings->pluck('user_uuid')->unique()->toArray();

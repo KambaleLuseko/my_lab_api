@@ -71,6 +71,7 @@ class UserRoomAccessController extends Controller
             ->where(fn ($query) => $query
                 ->where('user_uuid', $request->user_uuid)
                 // ->where('room_uuid', $request->room_uuid)
+                ->where('service_uuid', $request->service_uuid)
                 ->where('date', $request->date));
         
          $validatedData = $request->validate([
@@ -102,7 +103,7 @@ class UserRoomAccessController extends Controller
         /**
          * Check if the user has already submitted an access
          */
-        $checkDuplicate=UserRoomAccess::where('user_uuid', $request->user_uuid)->where('date', $request->date)->first();
+        $checkDuplicate=UserRoomAccess::where('user_uuid', $request->user_uuid)->where('date', $request->date)->where('service_uuid', $request->service_uuid)->first();
         if($checkDuplicate){
             return response()->json(['message' => 'This user already submitted an access'], 403);
         }
