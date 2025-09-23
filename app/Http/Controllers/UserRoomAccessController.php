@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\RoomManager;
 use App\Models\Salles;
+use App\Models\Services;
 use App\Models\User;
 use App\Models\UserRoomAccess;
 use DateTime;
@@ -27,6 +28,7 @@ class UserRoomAccessController extends Controller
             'date' => ['required', 'date'],
             'start_time' => ['required', 'date_format:H:i'],
             'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
+            'service_uuid' => ['required', 'string', 'exists:services,uuid'],
             // 'status' => ['nullable', 'string', Rule::in(['Approved', 'Pending', 'Canceled','Unavailable'])],
         ];
     }
@@ -36,11 +38,18 @@ class UserRoomAccessController extends Controller
      */
     public function index(Request $request)
     {
-        $manager=RoomManager::where('user_uuid', Auth::user()->uuid)->first();
-        $accesses = UserRoomAccess::where(function ($query) use ($manager) {
-           if(isset($manager)) $query->where('room_uuid', $manager->room_uuid);
-            $query->where('user_uuid',Auth::user()->uuid);
+        $isManager=false;
+        $roomUuids=[];
+        $manager=RoomManager::where('user_uuid', Auth::user()->uuid)->get();
+        if(isset($manager) && count($manager)>0){
+            $roomUuids=$manager->pluck('room_uuid')->toArray();
+            $isManager=true;
+        }
+        $accesses = UserRoomAccess::where(function ($query) use ($isManager, $roomUuids) {
+            if($isManager==true && count($roomUuids)>0) $query->whereIn('room_uuid', $roomUuids);
+            if($isManager==false)  $query->where('user_uuid',Auth::user()->uuid);
         })->get();
+      
         $getUser=$request->query('getUser');
         $getRoom=$request->query('getRoom');
         if($getUser === 'true'){
@@ -54,6 +63,7 @@ class UserRoomAccessController extends Controller
             $roomsMap = $rooms->keyBy('uuid');
         }
         foreach ($accesses as $access) {
+            $access->service = Services::where('uuid', $access->service_uuid)->first();
             $access->user = $getUser==='true'? $usersMap[$access->user_uuid] ?? null:null;
             $access->room = $getRoom==='true' ? $roomsMap[$access->room_uuid] ?? null:null;
         }
