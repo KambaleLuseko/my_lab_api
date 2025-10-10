@@ -212,6 +212,9 @@ class UserRoomAccessController extends Controller
 
     public function updateStatus(Request $request){
         $data=$request->data;
+        if(!isset($data)){
+            return response()->json(['message' => 'Invalid data submitted'], 403);
+        }
         if(is_array($data)==false){
             $data=json_decode($data, true);
         }
@@ -223,7 +226,7 @@ class UserRoomAccessController extends Controller
                 ->join('salles', 'room_managers.room_uuid', '=', 'salles.uuid')
               ->  select('room_managers.*', 'salles.capacity')
                 ->whereIn('room_managers.room_uuid', (array)$roomsUuid)
-                ->where('room_managers.date', '>=','2025-09-10'// DB::raw('CURDATE()')
+                ->where('room_managers.date', '>=', DB::raw('CURDATE()')
                 ) // <-- Correct use of DB::raw()
                 ->get();
         /**
@@ -233,6 +236,7 @@ class UserRoomAccessController extends Controller
         $filledRoomUuids=[];
         $rejectedDemands=[];
         $approvedDemands=[];
+        $validDemand=[];
 
         /**
          * Check if the demand is for a date that exists in rooms
@@ -242,6 +246,8 @@ class UserRoomAccessController extends Controller
                 UserRoomAccess::where('uuid', $demand['uuid'])->update(['status'=>'Canceled']);
                 $demand['status']='Canceled';
                 array_push($rejectedDemands, $demand);
+            }else{
+                array_push($validDemand, $demand);
             }
         }
 
@@ -261,6 +267,15 @@ class UserRoomAccessController extends Controller
              * 
              * Else, set room reservations count to the number of current approved requests
              */
+            // $openedAt=new DateTime($room->opened_at);
+            // $openedAt=$openedAt->format('H:i');
+            // $closedAt=new DateTime($room->closed_at);
+            // $closedAt=$closedAt->format('H:i');
+            // $startTime=new DateTime($validDemand['start_time']);
+            // $startTime=$startTime->format('H:i');
+            // $endTime=new DateTime($validDemand['end_time']);
+            // $endTime=$endTime->format('H:i');
+
             if(count($validatedAccesses)>=$room->capacity){
                 array_push($filledRooms, $room);
                 array_push($filledRoomUuids, $room->room_uuid);
